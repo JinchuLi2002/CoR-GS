@@ -131,6 +131,7 @@ def round_python3(number):
 def pipeline(scene, base_path, n_views):
     llffhold = 8
     view_path = str(n_views) + '_views'
+    os.environ["QT_QPA_PLATFORM"] = "offscreen" 
     os.chdir(base_path + scene)
     os.system('rm -r ' + view_path)
     os.mkdir(view_path)
