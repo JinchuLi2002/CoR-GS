@@ -184,7 +184,14 @@ def pipeline(scene, base_path, n_views):
             '--SiftExtraction.use_gpu 0'  # Disable GPU usage
         ).read()
         
-        os.system( 'colmap exhaustive_matcher --database_path database.db --SiftMatching.guided_matching 1 --SiftMatching.max_num_matches 32768')
+        #os.system( 'colmap exhaustive_matcher --database_path database.db --SiftMatching.guided_matching 1 --SiftMatching.max_num_matches 32768')
+        os.system(
+            'colmap exhaustive_matcher '
+            '--database_path database.db '
+            '--SiftMatching.guided_matching 0 '
+            '--SiftMatching.max_num_matches 32768 '
+            '--SiftMatching.use_gpu 0'  # Disable GPU usage
+        )
         db = COLMAPDatabase.connect('database.db')
         db_images = db.execute("SELECT * FROM images")
         img_rank = [db_image[1] for db_image in db_images]
