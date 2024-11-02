@@ -173,23 +173,23 @@ def pipeline(scene, base_path, n_views):
     with open('created/points3D.txt', "w") as fid:
         pass
 
-    #res = os.popen( 'colmap feature_extractor --database_path database.db --image_path images  --SiftExtraction.max_image_size 4032 --SiftExtraction.max_num_features 32768 --SiftExtraction.estimate_affine_shape 1 --SiftExtraction.domain_size_pooling 1').read()
-    res = os.popen(
-        'colmap feature_extractor '
-        '--database_path database.db '
-        '--image_path images '
-        '--SiftExtraction.max_image_size 4032 '
-        '--SiftExtraction.max_num_features 32768 '
-        '--SiftExtraction.use_gpu 0'  # Disable GPU usage
-    ).read()
-    #os.system( 'colmap exhaustive_matcher --database_path database.db --SiftMatching.guided_matching 1 --SiftMatching.max_num_matches 32768')
-    os.system(
-        'colmap exhaustive_matcher '
-        '--database_path database.db '
-        '--SiftMatching.guided_matching 1 '
-        '--SiftMatching.max_num_matches 32768 '
-        '--SiftMatching.use_gpu 0'  # Disable GPU usage
-    )
+    res = os.popen( 'colmap feature_extractor --database_path database.db --image_path images  --SiftExtraction.max_image_size 4032 --SiftExtraction.max_num_features 32768 --SiftExtraction.estimate_affine_shape 1 --SiftExtraction.domain_size_pooling 1').read()
+    # res = os.popen(
+    #     'colmap feature_extractor '
+    #     '--database_path database.db '
+    #     '--image_path images '
+    #     '--SiftExtraction.max_image_size 4032 '
+    #     '--SiftExtraction.max_num_features 32768 '
+    #     '--SiftExtraction.use_gpu 0'  # Disable GPU usage
+    # ).read()
+    os.system( 'colmap exhaustive_matcher --database_path database.db --SiftMatching.guided_matching 1 --SiftMatching.max_num_matches 32768')
+    # os.system(
+    #     'colmap exhaustive_matcher '
+    #     '--database_path database.db '
+    #     '--SiftMatching.guided_matching 1 '
+    #     '--SiftMatching.max_num_matches 32768 '
+    #     '--SiftMatching.use_gpu 0'  # Disable GPU usage
+    # )
 
     db = COLMAPDatabase.connect('database.db')
     db_images = db.execute("SELECT * FROM images")
