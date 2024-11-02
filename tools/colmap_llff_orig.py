@@ -2,6 +2,7 @@ import os
 import numpy as np
 import sys
 import sqlite3
+from xvfbwrapper import Xvfb
 
 
 IS_PYTHON3 = sys.version_info[0] >= 3
@@ -171,24 +172,25 @@ def pipeline(scene, base_path, n_views):
     os.system('cp ../sparse/0/cameras.txt created/.')
     with open('created/points3D.txt', "w") as fid:
         pass
+    
+    with Xvfb() as xvfb:
+        res = os.popen( 'colmap feature_extractor --database_path database.db --image_path images  --SiftExtraction.max_image_size 4032 --SiftExtraction.max_num_features 32768 --SiftExtraction.estimate_affine_shape 1 --SiftExtraction.domain_size_pooling 1').read()
+        os.system( 'colmap exhaustive_matcher --database_path database.db --SiftMatching.guided_matching 1 --SiftMatching.max_num_matches 32768')
+        db = COLMAPDatabase.connect('database.db')
+        db_images = db.execute("SELECT * FROM images")
+        img_rank = [db_image[1] for db_image in db_images]
+        print(img_rank, res)
+        with open('created/images.txt', "w") as fid:
+            for idx, img_name in enumerate(img_rank):
+                print(img_name)
+                data = [str(1 + idx)] + [' ' + item for item in images[os.path.basename(img_name)]] + ['\n\n']
+                fid.writelines(data)
 
-    res = os.popen( 'colmap feature_extractor --database_path database.db --image_path images  --SiftExtraction.max_image_size 4032 --SiftExtraction.max_num_features 32768 --SiftExtraction.estimate_affine_shape 1 --SiftExtraction.domain_size_pooling 1').read()
-    os.system( 'colmap exhaustive_matcher --database_path database.db --SiftMatching.guided_matching 1 --SiftMatching.max_num_matches 32768')
-    db = COLMAPDatabase.connect('database.db')
-    db_images = db.execute("SELECT * FROM images")
-    img_rank = [db_image[1] for db_image in db_images]
-    print(img_rank, res)
-    with open('created/images.txt', "w") as fid:
-        for idx, img_name in enumerate(img_rank):
-            print(img_name)
-            data = [str(1 + idx)] + [' ' + item for item in images[os.path.basename(img_name)]] + ['\n\n']
-            fid.writelines(data)
-
-    os.system('colmap point_triangulator --database_path database.db --image_path images --input_path created  --output_path triangulated  --Mapper.ba_local_max_num_iterations 40 --Mapper.ba_local_max_refinements 3 --Mapper.ba_global_max_num_iterations 100')
-    os.system('colmap model_converter  --input_path triangulated --output_path triangulated  --output_type TXT')
-    os.system('colmap image_undistorter --image_path images --input_path triangulated --output_path dense')
-    os.system('colmap patch_match_stereo --workspace_path dense')
-    os.system('colmap stereo_fusion --workspace_path dense --output_path dense/fused.ply')
+        os.system('colmap point_triangulator --database_path database.db --image_path images --input_path created  --output_path triangulated  --Mapper.ba_local_max_num_iterations 40 --Mapper.ba_local_max_refinements 3 --Mapper.ba_global_max_num_iterations 100')
+        os.system('colmap model_converter  --input_path triangulated --output_path triangulated  --output_type TXT')
+        os.system('colmap image_undistorter --image_path images --input_path triangulated --output_path dense')
+        os.system('colmap patch_match_stereo --workspace_path dense')
+        os.system('colmap stereo_fusion --workspace_path dense --output_path dense/fused.ply')
 
 
 #for scene in ['fern', 'flower', 'fortress',  'horns',  'leaves',  'orchids',  'room',  'trex']:# ['bonsai', 'counter', 'garden', 'kitchen', 'room', 'stump']:
