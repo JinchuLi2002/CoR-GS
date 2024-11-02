@@ -186,7 +186,7 @@ def pipeline(scene, base_path, n_views):
         os.system(
             'colmap exhaustive_matcher '
             '--database_path database.db '
-            '--SiftMatching.guided_matching 1 '
+            '--SiftMatching.guided_matching 0 '
             '--SiftMatching.max_num_matches 32768 '
             '--SiftMatching.use_gpu 0'  # Disable GPU usage
         )
