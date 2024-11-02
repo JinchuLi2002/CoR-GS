@@ -211,5 +211,6 @@ def pipeline(scene, base_path, n_views):
 # for scene in ['fern', 'flower', 'fortress',  'horns',  'leaves',  'orchids',  'room',  'trex']:# ['bonsai', 'counter', 'garden', 'kitchen', 'room', 'stump']:
 #     pipeline(scene, base_path = '/data/mipnerf360/', n_views = 3)  # please use absolute path!
 os.environ['LIBGL_ALWAYS_SOFTWARE'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0',
 for scene in ['fern']:
     pipeline(scene, base_path = '/pscratch/sd/j/jinchuli/drProject/managerrepo/data/', n_views = 5)  # please use absolute path!
