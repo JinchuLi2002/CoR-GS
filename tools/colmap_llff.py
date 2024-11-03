@@ -196,6 +196,8 @@ def pipeline(scene, base_path, n_views):
         '--output_type TXT'
     )
 
+    os.system('cp sparse/0/* created/')
+
     images = {}
     with open('./sparse/0/images.txt', "r") as fid:
         while True:
