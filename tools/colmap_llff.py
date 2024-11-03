@@ -146,13 +146,13 @@ def pipeline(scene, base_path, n_views):
     all_images = sorted(os.listdir(os.path.join('..', 'images')))
     all_images = [img for img in all_images if img.lower().endswith(('.png', '.jpg', '.jpeg'))]
 
-    # Select n_views images
-    # if n_views > 0:
-    #     idx_sub = [int(round(i)) for i in np.linspace(0, len(all_images)-1, n_views)]
-    #     selected_images = [all_images[idx] for idx in idx_sub]
-    # else:
-    #     selected_images = all_images
-    selected_images = all_images
+    #Select n_views images
+    if n_views > 0:
+        idx_sub = [int(round(i)) for i in np.linspace(0, len(all_images)-1, n_views)]
+        selected_images = [all_images[idx] for idx in idx_sub]
+    else:
+        selected_images = all_images
+    #selected_images = all_images
 
     # Copy only the selected images to 'images' directory
     for img_name in selected_images:
@@ -268,4 +268,4 @@ def pipeline(scene, base_path, n_views):
 #for scene in ['fern', 'flower', 'fortress',  'horns',  'leaves',  'orchids',  'room',  'trex']:# ['bonsai', 'counter', 'garden', 'kitchen', 'room', 'stump']:
     #pipeline(scene, base_path = '/data/mipnerf360/', n_views = 3)  # please use absolute path!
 for scene in ['fern']:
-    pipeline(scene, base_path = '/pscratch/sd/j/jinchuli/drProject/managerrepo/data/llff/', n_views = 3)  # please use absolute path!
+    pipeline(scene, base_path = '/pscratch/sd/j/jinchuli/drProject/managerrepo/data/llff/', n_views = 5)  # please use absolute path!
