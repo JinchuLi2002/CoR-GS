@@ -147,11 +147,12 @@ def pipeline(scene, base_path, n_views):
     all_images = [img for img in all_images if img.lower().endswith(('.png', '.jpg', '.jpeg'))]
 
     # Select n_views images
-    if n_views > 0:
-        idx_sub = [int(round(i)) for i in np.linspace(0, len(all_images)-1, n_views)]
-        selected_images = [all_images[idx] for idx in idx_sub]
-    else:
-        selected_images = all_images
+    # if n_views > 0:
+    #     idx_sub = [int(round(i)) for i in np.linspace(0, len(all_images)-1, n_views)]
+    #     selected_images = [all_images[idx] for idx in idx_sub]
+    # else:
+    #     selected_images = all_images
+    selected_images = all_images
 
     # Copy only the selected images to 'images' directory
     for img_name in selected_images:
