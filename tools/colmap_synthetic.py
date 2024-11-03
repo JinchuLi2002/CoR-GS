@@ -163,11 +163,25 @@ def pipeline(scene, base_path, n_views):
             '--SiftMatching.max_num_matches 32768 '
             '--SiftMatching.use_gpu 0'
         )
+
+        # **Create the 'sparse' directory before running 'colmap mapper'**
+        os.mkdir('sparse')
+
         # Mapping (structure from motion)
-        os.system('colmap mapper --database_path database.db --image_path images --output_path sparse')
+        os.system(
+            'colmap mapper '
+            '--database_path database.db '
+            '--image_path images '
+            '--output_path sparse'
+        )
 
         # Convert model to TXT format
-        os.system('colmap model_converter --input_path sparse/0 --output_path sparse/0 --output_type TXT')
+        os.system(
+            'colmap model_converter '
+            '--input_path sparse/0 '
+            '--output_path sparse/0 '
+            '--output_type TXT'
+        )
 
     # Read images and their metadata from images.txt
     images = {}
@@ -219,16 +233,36 @@ def pipeline(scene, base_path, n_views):
             '--SiftMatching.max_num_matches 32768 '
             '--SiftMatching.use_gpu 0'
         )
+
+        # **Create the 'triangulated' directory before running 'colmap mapper'**
+        os.mkdir('triangulated')
+
         # Reconstruct model with selected images
-        os.system('colmap mapper --database_path database_selected.db --image_path images --output_path triangulated')
+        os.system(
+            'colmap mapper '
+            '--database_path database_selected.db '
+            '--image_path images '
+            '--output_path triangulated'
+        )
 
         # Convert model to TXT format
-        os.system('colmap model_converter --input_path triangulated/0 --output_path triangulated/0 --output_type TXT')
+        os.system(
+            'colmap model_converter '
+            '--input_path triangulated/0 '
+            '--output_path triangulated/0 '
+            '--output_type TXT'
+        )
 
     # Undistort images and prepare for dense reconstruction
-    os.system('colmap image_undistorter --image_path images --input_path triangulated/0 --output_path dense')
+    os.system(
+        'colmap image_undistorter '
+        '--image_path images '
+        '--input_path triangulated/0 '
+        '--output_path dense'
+    )
     os.system('colmap patch_match_stereo --workspace_path dense')
     os.system('colmap stereo_fusion --workspace_path dense --output_path dense/fused.ply')
+
 
 # Adjust the base path to your dataset's location
 base_path = '/pscratch/sd/j/jinchuli/drProject/nerf_synthetic/'
