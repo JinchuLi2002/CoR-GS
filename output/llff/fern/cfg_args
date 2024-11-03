@@ -1,1 +1,1 @@
-Namespace(sh_degree=3, source_path='/pscratch/sd/j/jinchuli/drProject/managerrepo/data/llff/fern', model_path='output/llff/fern', images='images', resolution=8, white_background=False, data_device='cuda', eval=True, n_views=5, rand_pcd=False, n_sparse=-1)
+Namespace(sh_degree=3, source_path='/pscratch/sd/j/jinchuli/drProject/managerrepo/data/llff/fern', model_path='output/llff/fern', images='images', resolution=8, white_background=False, data_device='cuda', eval=True, n_views=3, rand_pcd=False, n_sparse=-1)
