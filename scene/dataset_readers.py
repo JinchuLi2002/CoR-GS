@@ -509,6 +509,8 @@ def readNerfSyntheticInfo(path, white_background, eval, n_views=0, extension=".p
     pseudo_cam_infos = train_cam_infos #train_cam_infos
     if n_views > 0:
         train_cam_infos = [c for idx, c in enumerate(train_cam_infos) if idx in [2, 16, 26, 55, 73, 76, 86, 93]]
+        if n_views > 0 and n_views < len(train_cam_infos):
+            train_cam_infos = train_cam_infos[:n_views]
         print(f"len(train_cam_infos) is {len(train_cam_infos)}")
         assert len(train_cam_infos) == n_views
 
