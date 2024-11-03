@@ -3,7 +3,7 @@ import numpy as np
 import sys
 import sqlite3
 from xvfbwrapper import Xvfb
-
+import shutil
 
 IS_PYTHON3 = sys.version_info[0] >= 3
 MAX_IMAGE_ID = 2**31 - 1
@@ -141,8 +141,23 @@ def pipeline(scene, base_path, n_views):
     os.mkdir('triangulated')
     os.mkdir('images')
 
-    # Copy images to 'images' directory
-    os.system('cp ../images/*.* images/')
+
+     # Read all image names from the original images directory
+    all_images = sorted(os.listdir(os.path.join('..', 'images')))
+    all_images = [img for img in all_images if img.lower().endswith(('.png', '.jpg', '.jpeg'))]
+
+    # Select n_views images
+    if n_views > 0:
+        idx_sub = [int(round(i)) for i in np.linspace(0, len(all_images)-1, n_views)]
+        selected_images = [all_images[idx] for idx in idx_sub]
+    else:
+        selected_images = all_images
+
+    # Copy only the selected images to 'images' directory
+    for img_name in selected_images:
+        src = os.path.join('..', 'images', img_name)
+        dst = os.path.join('images', img_name)
+        shutil.copyfile(src, dst)
 
     # Run COLMAP feature extraction
     os.system(
@@ -180,9 +195,8 @@ def pipeline(scene, base_path, n_views):
         '--output_type TXT'
     )
 
-
     images = {}
-    with open('../sparse/0/images.txt', "r") as fid:
+    with open('./sparse/0/images.txt', "r") as fid:
         while True:
             line = fid.readline()
             if not line:
