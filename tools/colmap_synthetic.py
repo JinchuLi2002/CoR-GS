@@ -234,8 +234,6 @@ def pipeline(scene, base_path, n_views):
             '--SiftMatching.use_gpu 0'
         )
 
-        # **Create the 'triangulated' directory before running 'colmap mapper'**
-        os.mkdir('triangulated')
 
         # Reconstruct model with selected images
         os.system(
