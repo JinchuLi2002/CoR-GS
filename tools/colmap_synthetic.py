@@ -3,7 +3,7 @@ import numpy as np
 import sys
 import sqlite3
 from xvfbwrapper import Xvfb
-
+import shutil
 
 IS_PYTHON3 = sys.version_info[0] >= 3
 MAX_IMAGE_ID = 2**31 - 1
@@ -130,11 +130,10 @@ def round_python3(number):
     return rounded
 
 def pipeline(scene, base_path, n_views):
-    view_path = str(n_views) + '_views'
+    llffhold = 8
     scene_path = os.path.join(base_path, scene)
     os.chdir(scene_path)
-
-    # Remove and recreate view_path directory
+    view_path = str(n_views) + '_views'
     os.system('rm -rf ' + view_path)
     os.mkdir(view_path)
     os.chdir(view_path)
@@ -142,50 +141,65 @@ def pipeline(scene, base_path, n_views):
     os.mkdir('triangulated')
     os.mkdir('images')
 
-    # Copy images from 'train' directory to 'images' directory
-    os.system('cp ../train/*.* images/')
 
-    with Xvfb() as xvfb:
-        # Feature extraction
-        os.system(
-            'colmap feature_extractor '
-            '--database_path database.db '
-            '--image_path images '
-            '--SiftExtraction.max_image_size 4032 '
-            '--SiftExtraction.max_num_features 32768 '
-            '--SiftExtraction.use_gpu 0'
-        )
-        # Feature matching
-        os.system(
-            'colmap exhaustive_matcher '
-            '--database_path database.db '
-            '--SiftMatching.guided_matching 0 '
-            '--SiftMatching.max_num_matches 32768 '
-            '--SiftMatching.use_gpu 0'
-        )
+     # Read all image names from the original images directory
+    all_images = sorted(os.listdir(os.path.join('..', 'images')))
+    all_images = [img for img in all_images if img.lower().endswith(('.png', '.jpg', '.jpeg'))]
 
-        # **Create the 'sparse' directory before running 'colmap mapper'**
-        os.mkdir('sparse')
+    #Select n_views images
+    if n_views > 0:
+        idx_sub = [int(round(i)) for i in np.linspace(0, len(all_images)-1, n_views)]
+        selected_images = [all_images[idx] for idx in idx_sub]
+    else:
+        selected_images = all_images
+    #selected_images = all_images
 
-        # Mapping (structure from motion)
-        os.system(
-            'colmap mapper '
-            '--database_path database.db '
-            '--image_path images '
-            '--output_path sparse'
-        )
+    # Copy only the selected images to 'images' directory
+    for img_name in selected_images:
+        src = os.path.join('..', 'images', img_name)
+        dst = os.path.join('images', img_name)
+        shutil.copyfile(src, dst)
 
-        # Convert model to TXT format
-        os.system(
-            'colmap model_converter '
-            '--input_path sparse/0 '
-            '--output_path sparse/0 '
-            '--output_type TXT'
-        )
+    # Run COLMAP feature extraction
+    os.system(
+        'colmap feature_extractor '
+        '--database_path database.db '
+        '--image_path images '
+        '--ImageReader.single_camera 1 '
+        '--SiftExtraction.use_gpu 0'
+    )
 
-    # Read images and their metadata from images.txt
+    # Run COLMAP exhaustive matcher
+    os.system(
+        'colmap exhaustive_matcher '
+        '--database_path database.db '
+        '--SiftMatching.use_gpu 0'
+    )
+
+    # Create 'sparse' directory
+    os.mkdir('sparse')
+
+    # Run COLMAP mapper
+    os.system(
+        'colmap mapper '
+        '--database_path database.db '
+        '--image_path images '
+        '--output_path sparse '
+        '--Mapper.num_threads 16'
+    )
+
+    # Convert model to TXT format
+    os.system(
+        'colmap model_converter '
+        '--input_path sparse/0 '
+        '--output_path sparse/0 '
+        '--output_type TXT'
+    )
+
+    os.system('cp sparse/0/* created/')
+
     images = {}
-    with open('sparse/0/images.txt', "r") as fid:
+    with open('./sparse/0/images.txt', "r") as fid:
         while True:
             line = fid.readline()
             if not line:
@@ -198,72 +212,69 @@ def pipeline(scene, base_path, n_views):
                 tvec = np.array(tuple(map(float, elems[5:8])))
                 camera_id = int(elems[8])
                 image_name = elems[9]
-                fid.readline()
+                fid.readline().split()
                 images[image_name] = elems[1:]
 
-    img_list = sorted(images.keys())
-    # Select n_views images
+    img_list = sorted(images.keys(), key=lambda x: x)
+    train_img_list = [c for idx, c in enumerate(img_list) if idx % llffhold != 0]
     if n_views > 0:
-        idx_sub = [int(round(i)) for i in np.linspace(0, len(img_list)-1, n_views)]
-        train_img_list = [img_list[idx] for idx in idx_sub]
-    else:
-        train_img_list = img_list
+        idx_sub = [round_python3(i) for i in np.linspace(0, len(train_img_list)-1, n_views)]
+        train_img_list = [c for idx, c in enumerate(train_img_list) if idx in idx_sub]
 
-    # Clean images directory and copy selected images
-    os.system('rm -rf images')
-    os.mkdir('images')
+
     for img_name in train_img_list:
-        os.system('cp ../train/' + img_name + ' images/' + img_name)
+        os.system('cp ../images/' + img_name + '  images/' + img_name)
 
+    os.system('cp ../sparse/0/cameras.txt created/.')
+    with open('created/points3D.txt', "w") as fid:
+        pass
+    
     with Xvfb() as xvfb:
-        # Re-run feature extraction on selected images
-        os.system(
+        #res = os.popen( 'colmap feature_extractor --database_path database.db --image_path images  --SiftExtraction.max_image_size 4032 --SiftExtraction.max_num_features 32768 --SiftExtraction.estimate_affine_shape 1 --SiftExtraction.domain_size_pooling 1').read()
+        res = os.popen(
             'colmap feature_extractor '
-            '--database_path database_selected.db '
+            '--database_path database.db '
             '--image_path images '
             '--SiftExtraction.max_image_size 4032 '
             '--SiftExtraction.max_num_features 32768 '
-            '--SiftExtraction.use_gpu 0'
-        )
-        # Re-run matching on selected images
+            '--SiftExtraction.use_gpu 0'  # Disable GPU usage
+        ).read()
+        
+        #os.system( 'colmap exhaustive_matcher --database_path database.db --SiftMatching.guided_matching 1 --SiftMatching.max_num_matches 32768')
         os.system(
             'colmap exhaustive_matcher '
-            '--database_path database_selected.db '
+            '--database_path database.db '
             '--SiftMatching.guided_matching 0 '
             '--SiftMatching.max_num_matches 32768 '
-            '--SiftMatching.use_gpu 0'
+            '--SiftMatching.use_gpu 0'  # Disable GPU usage
         )
+        db = COLMAPDatabase.connect('database.db')
+        db_images = db.execute("SELECT * FROM images")
+        img_rank = [db_image[1] for db_image in db_images]
+        print(img_rank, res)
+        with open('created/images.txt', "w") as fid:
+            for idx, img_name in enumerate(img_rank):
+                print(img_name)
+                data = [str(1 + idx)] + [' ' + item for item in images[os.path.basename(img_name)]] + ['\n\n']
+                fid.writelines(data)
+
+        os.system('colmap point_triangulator --database_path database.db --image_path images --input_path created  --output_path triangulated  --Mapper.ba_local_max_num_iterations 40 --Mapper.ba_local_max_refinements 3 --Mapper.ba_global_max_num_iterations 100')
+        os.system('colmap model_converter  --input_path triangulated --output_path triangulated  --output_type TXT')
+        os.system('colmap image_undistorter --image_path images --input_path triangulated --output_path dense')
+        os.system('colmap patch_match_stereo --workspace_path dense')
+        os.system('colmap stereo_fusion --workspace_path dense --output_path dense/fused.ply')
 
 
-        # Reconstruct model with selected images
-        os.system(
-            'colmap mapper '
-            '--database_path database_selected.db '
-            '--image_path images '
-            '--output_path triangulated'
-        )
-
-        # Convert model to TXT format
-        os.system(
-            'colmap model_converter '
-            '--input_path triangulated/0 '
-            '--output_path triangulated/0 '
-            '--output_type TXT'
-        )
-
-    # Undistort images and prepare for dense reconstruction
-    os.system(
-        'colmap image_undistorter '
-        '--image_path images '
-        '--input_path triangulated/0 '
-        '--output_path dense'
-    )
-    os.system('colmap patch_match_stereo --workspace_path dense')
-    os.system('colmap stereo_fusion --workspace_path dense --output_path dense/fused.ply')
+# #for scene in ['fern', 'flower', 'fortress',  'horns',  'leaves',  'orchids',  'room',  'trex']:# ['bonsai', 'counter', 'garden', 'kitchen', 'room', 'stump']:
+#     #pipeline(scene, base_path = '/data/mipnerf360/', n_views = 3)  # please use absolute path!
+# for scene in ['fern']:
+#     pipeline(scene, base_path = '/pscratch/sd/j/jinchuli/drProject/managerrepo/data/llff/', n_views = 5)  # please use absolute path!
+# # Adjust the base path to your dataset's location
 
 
-# Adjust the base path to your dataset's location
+
 base_path = '/pscratch/sd/j/jinchuli/drProject/nerf_synthetic/'
 
-for scene in ['chair', 'drums', 'ficus', 'hotdog', 'lego', 'materials', 'mic', 'ship']:
+#for scene in ['chair', 'drums', 'ficus', 'hotdog', 'lego', 'materials', 'mic', 'ship']:
+for scene in ['chair']:
     pipeline(scene, base_path=base_path, n_views=3)

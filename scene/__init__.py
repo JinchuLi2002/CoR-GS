@@ -48,7 +48,8 @@ class Scene:
         self.bounds = None
 
         if os.path.exists(os.path.join(args.source_path, "sparse")):
-            if args.source_path.find('llff') != -1:
+            # if args.source_path.find('llff') != -1:
+            if True:
                 print("############ load llff ############")
                 scene_info = sceneLoadTypeCallbacks["Colmap"](args.source_path, args.images, args.eval, args.n_views, rand_pcd=args.rand_pcd)
             elif args.source_path.find('mipnerf360') != -1:
