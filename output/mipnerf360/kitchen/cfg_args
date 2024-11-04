@@ -1,0 +1,1 @@
+Namespace(sh_degree=3, source_path='/pscratch/sd/j/jinchuli/drProject/mipnerf360/kitchen', model_path='output/mipnerf360/kitchen/', images='images', resolution=4, white_background=False, data_device='cuda', eval=True, n_views=7, rand_pcd=False, n_sparse=-1)
