@@ -228,7 +228,7 @@ def pipeline(scene, base_path, n_views):
 # for scene in ['bicycle', 'bonsai', 'counter', 'garden',  'kitchen', 'room', 'stump']:
 # for scene in ['bicycle', 'bonsai', 'counter', 'garden', 'kitchen', 'room', 'stump']:
 # ['chair', 'drums', 'ficus', 'hotdog', 'lego', 'materials', 'mic', 'ship']
-scene = 'drums'
-pipeline(scene, base_path = 'data/nerf_synthetic/', n_views = 8)
+scene = 'chair'
+pipeline(scene, base_path = '/pscratch/sd/j/jinchuli/drProject/nerf_synthetic/', n_views = 3)
 
 

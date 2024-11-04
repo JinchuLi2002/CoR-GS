@@ -252,6 +252,8 @@ def pipeline(scene, base_path, n_views):
         db_images = db.execute("SELECT * FROM images")
         img_rank = [db_image[1] for db_image in db_images]
         print(img_rank, res)
+        import json
+        print(json.dumps(images))
         with open('created/images.txt', "w") as fid:
             for idx, img_name in enumerate(img_rank):
                 print(img_name)
@@ -276,5 +278,5 @@ def pipeline(scene, base_path, n_views):
 base_path = '/pscratch/sd/j/jinchuli/drProject/nerf_synthetic/'
 
 #for scene in ['chair', 'drums', 'ficus', 'hotdog', 'lego', 'materials', 'mic', 'ship']:
-for scene in ['chair']:
-    pipeline(scene, base_path=base_path, n_views=3)
+for scene in ['lego']:
+    pipeline(scene, base_path=base_path, n_views=5)

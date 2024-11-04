@@ -191,6 +191,8 @@ def pipeline(scene, base_path, n_views):
     os.system('colmap stereo_fusion --workspace_path dense --output_path dense/fused.ply')
 
 
-for scene in ['bicycle', 'bonsai', 'counter', 'garden',  'kitchen', 'room', 'stump']:
-    pipeline(scene, base_path = '/data/mipnerf360/', n_views = 24)  # please use absolute path!
+
+#for scene in ['bicycle', 'bonsai', 'counter', 'garden',  'kitchen', 'room', 'stump']:
+for scene in ['kitchen']:
+    pipeline(scene, base_path = '/pscratch/sd/j/jinchuli/drProject/mipnerf360/', n_views = 7)  # please use absolute path!
 
